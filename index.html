@@ -1,0 +1,312 @@
+<!doctype html>
+<html>
+<head>
+<title>Match the pitch!</title>
+<style>
+
+canvas {
+    position:absolute;
+    left:20px;
+    top:20px;
+}
+
+#statusDiv {
+
+    position:absolute;
+    left:10px;
+    top:400px
+}
+
+
+#scoreDiv {
+
+    position:absolute;
+    left:500px;
+    top:20px
+}
+
+fieldset {
+	display:inline;
+}
+
+</style>
+ <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+ <script src="js/vexflow-min.js"></script>
+ <script src="js/wad-min.js"></script>
+ <script>
+
+vexNotes=["c/2", "d/2", "e/2", "f/2", "g/2", "a/2", "b/2", "c/3", "d/3", "e/3", "f/3", "g/3", "a/3", "b/3", "c/4", "d/4", "e/4", "f/4", "g/4", "a/4", "b/4", "c/5", "d/5", "e/5", "f/5", "g/5", "a/5", "b/5", "c/6"];
+
+wadNotes=["C2", "D2", "E2", "F2", "G2", "A2", "B2", "C3", "D3", "E3", "F3", "G3", "A3", "B3", "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5", "D5", "E5", "F5", "G5", "A5", "B5", "C6"];
+
+
+vexNotesSharp=["c#/2", "d#/2", "f#/2", "g#/2", "a#/2", "c#/3", "d#/3", "f#/3", "g#/3", "a#/3", "c#/4", "d#/4", "f#/4", "g#/4", "a#/4", "c#/5", "d#/5", "f#/5", "g#/5", "a#/5", "c#/6"];
+
+wadNotesSharp=["C#2", "D#2", "F#2", "G#2", "A#2", "C#3", "D#3", "F#3", "G#3", "A#3", "C#4", "D#4", "F#4", "G#4", "A#4", "C#5", "D#5", "F#5", "G#5", "A#5", "C#6"];
+
+
+
+
+
+var lastNote;
+var currentKey="";
+var targetKey="x";
+var score=0;
+var nextScore=1000;
+var minScore=10;
+var limit=15;
+var finished=0;
+var useSharps=false;
+var midpoint=15;
+
+var timeout;
+var output;
+
+running=false;
+
+function toggleSharps() {
+	useSharps=!useSharps;
+	if (useSharps) {
+
+ 	 eVex=vexNotesSharp.splice(10);
+	 vexNotes=[].concat(vexNotesSharp,vexNotes,eVex);
+
+ 	 eWad=wadNotesSharp.splice(10);
+	 wadNotes=[].concat(wadNotesSharp,wadNotes,eWad);
+
+	 midpoint=25;
+
+	}else{
+vexNotes=["c/2", "d/2", "e/2", "f/2", "g/2", "a/2", "b/2", "c/3", "d/3", "e/3", "f/3", "g/3", "a/3", "b/3", "c/4", "d/4", "e/4", "f/4", "g/4", "a/4", "b/4", "c/5", "d/5", "e/5", "f/5", "g/5", "a/5", "b/5", "c/6"];
+
+wadNotes=["C2", "D2", "E2", "F2", "G2", "A2", "B2", "C3", "D3", "E3", "F3", "G3", "A3", "B3", "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5", "D5", "E5", "F5", "G5", "A5", "B5", "C6"];
+	
+	midpoint=15;
+
+	}
+		
+
+}
+
+
+function gameOver() {
+	running=false;
+	alert("You did " + limit + " notes and your score was: " + score + "!");
+	return false;
+}
+
+
+function randomKey() {
+	return vexNotes[Math.floor(Math.random() * vexNotes.length)];
+}
+
+
+function note(key) {
+	if (!key) {
+	 key=randomKey();
+	}
+ 	 idx=vexNotes.indexOf(key);	
+	 clef='treble';
+	 if (idx < midpoint) clef='bass';
+	
+	var n = new Vex.Flow.StaveNote({
+	 clef: clef,
+	 keys: [key],
+	 duration: 'q',
+	 auto_stem: true
+	});
+
+	if (key.indexOf("#") != -1) {
+	 n.addAccidental(0, new Vex.Flow.Accidental("#"));
+	}
+
+	return n;
+}
+
+
+function noteConvert(note) {
+	var wadI=wadNotes.indexOf(note);
+	if (wadI != -1) {
+	 return vexNotes[wadI];
+	}
+	var vexI=vexNotes.indexOf(note);
+	if (vexI != -1) {
+	 return wadNotes[vexI];
+	}
+	return note;
+}
+
+
+
+function clearCanvas2() {
+	var canvas = $("#cnv2")[0];
+	canvas.width = canvas.width;
+	console.log("clearing canvas2");
+}
+
+function drawNote(n, cID, offset) {
+
+	
+	var canvas = $("#" + cID)[0];
+	canvas.width = canvas.width;
+
+	var renderer = new Vex.Flow.Renderer(canvas, Vex.Flow.Renderer.Backends.CANVAS);
+	var ctx = renderer.getContext();
+	ctx.scale(2,2);
+
+	var staveT = new Vex.Flow.Stave(20, 0, 300);
+	var staveB = new Vex.Flow.Stave(20, 60, 300);
+	staveT.addClef("treble").setContext(ctx).draw();
+	staveB.addClef("bass").setContext(ctx).draw();
+
+	var voice = new Vex.Flow.Voice({
+		num_beats: 1,
+		beat_value: 4,
+		resolution: Vex.Flow.RESOLUTION
+	});
+
+	n.setExtraLeftPx(offset);
+	voice.addTickables([n]);
+ 
+	 var formatter = new Vex.Flow.Formatter();
+	 formatter.format([voice], 200);
+	 var s = staveT;
+	 if (n.clef == "bass") s=staveB;
+
+	 if (cID == "cnv2") {
+		ctx.strokeStyle="#FF0000";
+		ctx.fillStyle="#FF0000";
+	 }
+
+
+	 voice.draw(ctx,s);
+	
+	if (cID == "cnv2") {
+		clearTimeout(timeout);
+		timeout = setTimeout('clearCanvas2()',300);
+	}
+
+}
+
+
+
+function recordInput() {
+
+	var voice = new Wad({source  : 'mic' });
+
+	output = new Wad.Poly();
+
+	output.add(voice);
+	output.setVolume(0);
+}
+
+function logPitch() {
+	nextScore-=1;
+	var n=output.noteName;
+	if(n) {
+	   if (wadNotes.indexOf(n) != -1) {
+	      var nc=noteConvert(n);
+	      if (nc && (nc != n)) {
+		currentKey=note(nc).keys[0];
+		 drawNote(note(nc), "cnv2", 50);
+ //		 $("#goodnote")[0].innerHTML=output.pitch + " : " + n + " : " + nc;
+		if (currentKey == targetKey) {
+		 	updateScore();
+			nextNote();
+		} else {
+			nextScore-=5;
+			currentKey="";
+		}
+	      }
+	   } else {
+ //		 $("#badnote")[0].innerHTML=output.pitch + " : " + n + " : " + nc;
+	   }
+	}
+		if (running) {
+			if (nextScore < minScore) nextScore=minScore;
+			updateStats(targetKey,currentKey);
+			requestAnimationFrame(logPitch);
+		}
+}
+
+function startShit() {
+	finished=0;
+	score=0;
+	nextScore=1000;
+	running=true;
+	nextNote();
+	output.play();
+	output.updatePitch()
+	logPitch();
+}
+
+
+function nextNote() {
+	finished+=1;
+	if (finished > limit) gameOver();
+	n=note();
+	targetKey=n.keys[0];	
+	drawNote(n,'cnv',30);
+}
+
+function updateScore() {
+	if (nextScore < minScore) nextScore=minScore;
+	score+=nextScore
+	nextScore=1000;
+	
+}
+
+function updateStats(target, current) {
+
+// 		 $("#targetkey")[0].innerHTML=targetKey;
+// 		 $("#lastkey")[0].innerHTML=currentKey;
+ 		 $("#score")[0].innerHTML=score;
+ 		 $("#nextscore")[0].innerHTML=nextScore;
+ 		 $("#progress")[0].innerHTML=finished + "/" + limit;
+}
+
+$(document).ready(function() {
+	recordInput();
+});
+
+
+ </script>
+</head>
+
+<body>
+<div id="divCanvas">
+	<canvas id="cnv2" width="400" height="400"></canvas>
+	<canvas id="cnv" width="400" height="400"></canvas>
+
+</div>
+<div id="statusDiv">
+ <fieldset><legend>Press this button to begin.</legend>
+<!--  <button onClick="nextNote();">next</button>
+  <button onClick="test();">test</button> -->
+  <button onClick="startShit();">BEGIN</button>
+</fieldset>
+<input type="checkbox" onChange="toggleSharps();">include sharps</input>
+<!--
+<fieldset><legend>Good Notes</legend>
+<span id="goodnote">C</span>
+</fieldset>
+<fieldset><legend>Bad Notes</legend>
+<span id="badnote">C</span>
+</fieldset>
+<fieldset><legend>Target Note</legend>
+<span id="targetkey">C</span>
+</fieldset>
+<fieldset><legend>Last Played</legend>
+<span id="lastkey">C</span>
+</fieldset>
+-->
+</div>
+<div id="scoreDiv">
+<h1>Score: <span id="score">0</span></h1>
+<h3>Next:  <span id="nextscore">1000</span></h3>
+<h3>Notes: <span id="progress"></span></h3>
+</div>
+<script>
+</script>
+</body>
+</html>
