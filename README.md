@@ -9,6 +9,8 @@ You can see it in action here, if I haven't taken it down yet:
 
 http://burke.se/piano-flash/index.html
 
+![](piano-flash.png)
+
 Only tested in Chrome on Linux/Android, and probably doesn't work elsewhere.
 
 It's worth noting that due to the way Wad works (or maybe web audio in general) you must run this from a web server or it won't work properly.
