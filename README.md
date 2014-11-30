@@ -1,9 +1,19 @@
-# Simple pitch detection
+# Inspired by this $6 paper note recognition thing that my daughter uses.
 
-I whipped this app up to start experimenting with pitch detection, and also to test live audio input.  It used to perform a naive (zero-crossing based) pitch detection algorithm; now it uses a naively-implemented auto-correlation algorithm in realtime, so it should work well with most monophonic waveforms (although strong harmonics will throw it off a bit).  It works well with whistling (which has a clear, simple waveform); it also works pretty well to tune my guitar.
 
-Live instance hosted on https://webaudiodemos.appspot.com/pitchdetect/.
+The heavy lifting here is done by Wad (https://github.com/rserota/wad) and VexFlow (https://github.com/0xfe/vexflow).
 
-Check it out, feel free to fork, submit pull requests, etc.  MIT-Licensed - party on.
+My implementation here is pretty horrendous, but it's good starting point, and hopefully it can save someone else a few hours of research when trying to get started with something similar.
 
--Chris
+You can see it in action here, if I haven't taken it down yet:
+
+http://burke.se/piano-flash/index.html
+
+Only tested in Chrome on Linux/Android, and probably doesn't work elsewhere.
+
+It's worth noting that due to the way Wad works (or maybe web audio in general) you must run this from a web server or it won't work properly.
+
+Hooray.
+
+
+-Sam
