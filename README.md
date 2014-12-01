@@ -1,5 +1,9 @@
-# Inspired by this $6 paper note recognition thing that my daughter uses.
+# Piano flash card app/game/trash.
 
+
+Inspired by this $6 paper note recognition thing that my daughter uses.
+
+![](music-card.png)
 
 The heavy lifting here is done by Wad (https://github.com/rserota/wad) and VexFlow (https://github.com/0xfe/vexflow).
 
