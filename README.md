@@ -5,7 +5,7 @@ Inspired by this $6 paper note recognition thing that my daughter uses.
 
 ![](music-card.png)
 
-The heavy lifting here is done by Wad (https://github.com/rserota/wad) and VexFlow (https://github.com/0xfe/vexflow).
+The heavy lifting is done by Wad (https://github.com/rserota/wad) and VexFlow (https://github.com/0xfe/vexflow).
 
 My implementation here is pretty horrendous, but it's good starting point, and hopefully it can save someone else a few hours of research when trying to get started with something similar.
 
